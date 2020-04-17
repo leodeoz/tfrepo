@@ -15,3 +15,16 @@ variable "resource_prefix" {
     type            = "string"
     default         = "my"
 }
+variable "vmSize" {
+  description       = "(Required) Vm size -B1s free"
+  type              = "string"
+}
+variable "var.admin_username" {
+    description     = "(Required) VM admin username"
+    type            = "string"
+}
+variable "var.admin_password" {
+    description     = "(Required) VM admin user password"
+    type            = "string"
+  
+}

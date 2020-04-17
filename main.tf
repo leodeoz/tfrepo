@@ -15,7 +15,7 @@ resource "azurerm_resource_group" "rg" {
 
 # Create a virtual network
 resource "azurerm_virtual_network" "vnet" {
-    name                = "${var.vmName}Vnet"
+    name                = "${var.vmName}-Vnet"
     address_space       = ["10.0.0.0/16"]
     location            = var.Location
     resource_group_name = azurerm_resource_group.rg.name
@@ -23,7 +23,7 @@ resource "azurerm_virtual_network" "vnet" {
 
 # Create subnet
 resource "azurerm_subnet" "subnet" {
-  name                 = "${var.vmName}Subnet"
+  name                 = "${var.vmName}-Subnet"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefix       = "10.0.1.0/24"
@@ -31,7 +31,7 @@ resource "azurerm_subnet" "subnet" {
 
 # Create public IP
 resource "azurerm_public_ip" "publicip" {
-  name                = "${var.resource_prefix}PublicIP"
+  name                = "${var.resource_prefix}-PublicIP"
   location            = var.Location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
@@ -40,7 +40,7 @@ resource "azurerm_public_ip" "publicip" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "nsg" {
-  name                = "${var.vmName}NSG"
+  name                = "${var.vmName}-NSG"
   location            = var.Location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -59,13 +59,13 @@ resource "azurerm_network_security_group" "nsg" {
 
 # Create network interface
 resource "azurerm_network_interface" "nic" {
-  name                      = "${var.vmName}NIC"
+  name                      = "${var.vmName}-NIC"
   location                  = var.Location
   resource_group_name       = azurerm_resource_group.rg.name
   network_security_group_id = azurerm_network_security_group.nsg.id
 
   ip_configuration {
-    name                          = "${var.vmName}NICConfg"
+    name                          = "${var.vmName}-NICConfg"
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = azurerm_public_ip.publicip.id
@@ -78,7 +78,7 @@ resource "azurerm_virtual_machine" "vm" {
   location              = var.Location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
-  vm_size               = "Standard_DS1_v2"
+  vm_size               = var.vmSize
 
   storage_os_disk {
     name              = "myOsDisk"
@@ -90,17 +90,30 @@ resource "azurerm_virtual_machine" "vm" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
   os_profile {
     computer_name  = "ubuntuTFVM"
-    admin_username = "rootAdmin"
-    admin_password = "Password1234!"
+    admin_username = var.admin_username
+    admin_password = var.admin_password
   }
 
   os_profile_linux_config {
     disable_password_authentication = false
   }
+  /*
+  provisioner "file" {
+      connection {
+      host     = azurerm_public_ip.publicip.ip_address
+      type     = "ssh"
+      user     = var.admin_username
+      password = var.admin_password
+    }
+
+    source      = "newfile.txt"
+    destination = "newfile.txt"
+  }
+  */
 }
