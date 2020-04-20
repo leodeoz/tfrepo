@@ -26,5 +26,10 @@ variable "var.admin_username" {
 variable "var.admin_password" {
     description     = "(Required) VM admin user password"
     type            = "string"
-  
 }
+variable "Sku" {
+    description     = "(Optional) Os sku"
+    type            = "string"
+    default         = "18.04-LTS" 
+}
+
